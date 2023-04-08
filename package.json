@@ -1,0 +1,58 @@
+{
+  "name": "playwright-testrail-reporter",
+  "version": "1.0.0",
+  "description": "Report Playwright test results to TestRail",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "/lib"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rimraf ./lib",
+    "compile": "tsc --build tsconfig.json",
+    "test:playwright": "npx playwright test --config=./tests/playwright.config.ts",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "npm run lint -- --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niche-tester/playwright-testrail-reporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niche-tester/playwright-testrail-reporter.git"
+  },
+  "homepage": "https://github.com/niche-tester/playwright-testrail-reporter#readme",
+  "keywords": [
+    "playwright",
+    "testrail",
+    "reporter",
+    "reporter-testrail",
+    "playwright-testrail"
+  ],
+  "author": "Denisha Surjoodeen",
+  "license": "MIT",
+  "dependencies": {
+    "@dlenroc/testrail": "^1.7.2",
+    "@playwright/test": "^1.32.1",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.4",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "dotenv": "^16.0.0",
+    "eslint": "^8.35.0",
+    "npm-run-all": "^4.1.5",
+    "playwright": "^1.32.1",
+    "prettier": "^2.8.7",
+    "release-it": "^15.7.0",
+    "rimraf": "^4.2.0",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^5.0.3"
+    },
+  "publishConfig": {
+    "access": "public"
+  }
+}

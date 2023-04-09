@@ -1,0 +1,6 @@
+src
+tests
+coverage
+.*
+logs
+test-results

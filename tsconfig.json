@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "lib": ["es6", "dom"],
+    "rootDir": "./src",
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "noImplicitAny": true,
+    "downlevelIteration": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./lib",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "sourceMap": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/tests", "logs"
+  ]
+}

@@ -30,10 +30,9 @@ Additionally, you may provide the TESTRAIL_RUN_ID environment variable to use an
 ```
 const config: PlaywrightTestConfig = {
  reporter: [
-		//...
     ["list"],
-		["playwright-testrail-reporter"]
-	]
+    ["playwright-testrail-reporter"]
+   ]
   // ...
 };
 

@@ -1,18 +1,7 @@
 import TestRail, { AddResultsForCases } from "@dlenroc/testrail"
 import { FullConfig, FullResult, Reporter, Suite, TestCase, TestError, TestResult } from "@playwright/test/reporter"
-const winston = require(`winston`)
-
-
-const console = new winston.transports.Console();
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.simple(),
-    transports: [
-        // - Write all logs with importance level of `info` or less than it
-        new winston.transports.File({ filename: 'logs/info.log', level: 'error' }),
-    ],
-});
-
+import logger from "./logger"
+  
 /**
  * Mapping status within Playwright & TestRail
  */
@@ -23,12 +12,10 @@ const StatusMap = new Map<string, number>([
 	["timeOut", 5],
 	["interrupted", 5],
 ])
-
 /**
  * Initialise TestRail API credential auth
  */
 const executionDateTime =  Date().toString().slice(4, 25)
-
 
 const api = new TestRail({
 	host: process.env.TESTRAIL_HOST as string,
@@ -41,27 +28,21 @@ const projectId = parseInt(process.env.TESTRAIL_PROJECT_ID as string)
 const suiteId = parseInt(process.env.TESTRAIL_SUITE_ID as string)
 
 const testResults: AddResultsForCases[] = []
-logger.add(console)
 
 export class TestRailReporter implements Reporter {
 	async onBegin?(config: FullConfig, suite: Suite) {
-		// Check for existing run or create one
 		if (!process.env.TESTRAIL_RUN_ID) {
-			logger.info("No Existing 'TESTRAIL_RUN_ID' provided by user...")
-			logger.info("Automatically creating a run...")
+			logger("No Existing 'TESTRAIL_RUN_ID' provided by user...")
+			logger("Automatically creating a run...")
 			await addTestRailRun(projectId)
 
 		} else {
-			logger.info("Existing Test Run with ID " + process.env.TESTRAIL_RUN_ID + " will be used")
+			logger("Existing Test Run with ID " + process.env.TESTRAIL_RUN_ID + " will be used")
 		}
 	}
 
-	onTestBegin(test: TestCase, result: TestResult): void {
-		//add any events here if necessary
-	}
-
 	onTestEnd(test: TestCase, result: TestResult) {
-		//logger.info(`Test Case Completed : ${test.title} Status : ${result.status}`)
+		logger(`Test Case Completed : ${test.title} Status : ${result.status}`)
 
 		//Return no test case match with TestRail Case ID Regex
 		const testCaseMatches = getTestCaseName(test.title)
@@ -85,11 +66,11 @@ export class TestRailReporter implements Reporter {
 
 	async onEnd(result: FullResult): Promise<void> {
 		let runId = parseInt(process.env.TESTRAIL_RUN_ID as string)
-		logger.info("Updating test status for the following TestRail Run ID: " + runId)
+		logger("Updating test status for the following TestRail Run ID: " + runId)
 		await updateResultCases(runId, testResults)
 	}
 	onError(error: TestError): void {
-		logger.error(error.message)
+		logger(error.message)
 	}
 }
 /**
@@ -102,11 +83,11 @@ function getTestCaseName(testname: string) {
 	if (testCaseMatches[0] != null) {
 		testCaseMatches[0].forEach((testCaseMatch) => {
 			let testCaseId = parseInt(testCaseMatch.substring(1), 10)
-			logger.info("Matched Test Case ID: " + testCaseId)
+			logger("Matched Test Case ID: " + testCaseId)
 		})
 	}
 	else {
-		logger.error("No test case matches available")
+		logger("No test case matches available")
 	}
 	return testCaseMatches[0]
 }
@@ -123,12 +104,12 @@ async function addTestRailRun(projectId: number) {
 		suite_id: suiteId,
 	}).then(
 		(res) => {
-			logger.info("New TestRail run has been created: " + process.env.TESTRAIL_HOST +
+			logger("New TestRail run has been created: " + process.env.TESTRAIL_HOST +
 				"/index.php?/runs/view/"+ res.id)
 			process.env.TESTRAIL_RUN_ID = (res.id).toString()
 		},
 		(reason) => {
-			logger.error("Failed to create new TestRail run: " + reason)
+			logger("Failed to create new TestRail run: " + reason)
 		})
 }
 
@@ -143,7 +124,8 @@ async function addResultForSuite(api: TestRail, runId: number, caseId: number, s
 	await api.addResultForCase(runId, caseId, {
 		status_id: status,
 		comment: comment
-	}).then((res) => { logger.info("Updated status for caseId " + caseId + " for runId " + runId) }, (reason) => { logger.info("Failed to call Update Api due to " + JSON.stringify(reason)) })
+	}).then((res) => { logger("Updated status for caseId " + caseId + " for runId " + runId) }, 
+	(reason) => { logger("Failed to call Update Api due to " + JSON.stringify(reason)) })
 }
 /**
  * Set Test comment for TestCase Failed | Passed
@@ -170,10 +152,10 @@ async function updateResultCases(runId: number, payload: any) {
 		results: payload,
 	}).then(
 		(result) => {
-			logger.info("Updated test results for Test Run: " + process.env.TESTRAIL_HOST +
+			logger("Updated test results for Test Run: " + process.env.TESTRAIL_HOST +
 				"/index.php?/runs/view/" + runId)
 		},
 		(reason) => {
-			logger.error("Failed to update test results: " + JSON.stringify(reason))
+			logger("Failed to update test results: " + JSON.stringify(reason))
 		})
 }

@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/playwright-testrail-reporter.svg)](https://badge.fury.io/js/playwright-testrail-reporter)
+
 # playwright-testrail-reporter
 
 playwright-testrail-reporter is a custom reporter for Playwright Test to seamlessly integrate with TestRail. The reporter automatically creates TestRail Runs and adds test results by matching test case IDs.
@@ -56,3 +58,21 @@ test("C12345 C12346 C12347 Login with valid credentials should succeed", async (
   // ...
 });
 ```
+
+4. When you execute your tests, you should see this output logs on your terminal:
+
+```
+info: No Existing 'TESTRAIL_RUN_ID' provided by user... 
+info: Automatically creating a run... (If you did not provide a run ID)
+info: New TestRail run has been created: https://<testrail-host>/index.php?/runs/view/<run-id>
+info: Matched Test Case ID: 12345
+info: Updating test status for the following TestRail Run ID: <run-id>
+info: Updated test results for Test Run: https://<testrail-host>/index.php?/runs/view/<run-id>
+
+```
+5. Test Run and test case results should be updated
+
+Note:
+The default behaviour is to include all test cases in the automatically generate test run. If you prefer to select specific tests cases, then manually create the run on TestRail, select the relevant test cases and pass the run id to the ```TESTRAIL_RUN_NAME``` environment variable
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/wufazu)

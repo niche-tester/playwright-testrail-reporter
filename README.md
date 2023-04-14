@@ -14,12 +14,12 @@ npm install @playwright-testrail-reporter
 To use TestRail Reporter, you will need to set up the following environment variables:
 
 ```
-TESTRAIL_HOST: Your TestRail instance URL
-TESTRAIL_USERNAME: Your TestRail account username
-TESTRAIL_PASSWORD: Your TestRail API key
-TESTRAIL_PROJECT_ID: The TestRail project ID where test runs and results will be added
+TESTRAIL_HOST: TestRail instance domain name e.g ```testrail.instance.io``` (exclude the https protocol)
+TESTRAIL_USERNAME: TestRail email 
+TESTRAIL_PASSWORD: TestRail API key (Generate one in the 'My Settings page on your TestRail instance)
+TESTRAIL_PROJECT_ID: TestRail project ID where test runs and results will be added
 TESTRAIL_SUITE_ID: The TestRail suite ID associated with the test cases
-TESTRAIL_RUN_NAME: The name of the TestRail test run. The execution time will be appended to this on TestRail
+TESTRAIL_RUN_NAME: The name of the TestRail test run. (thhe execution time will be appended to this name on when created on TestRail)
 ````
 
 Additionally, you may provide the TESTRAIL_RUN_ID environment variable to use an existing TestRail test run instead of creating a new one.
@@ -74,5 +74,10 @@ info: Updated test results for Test Run: https://<testrail-host>/index.php?/runs
 
 Note:
 The default behaviour is to include all test cases in the automatically generate test run. If you prefer to select specific tests cases, then manually create the run on TestRail, select the relevant test cases and pass the run id to the ```TESTRAIL_RUN_NAME``` environment variable
+
+## License
+This project is licensed under the [MIT License](/README.md)
+
+## Support
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/wufazu)

@@ -16,7 +16,7 @@ To use TestRail Reporter, you will need to set up the following environment vari
 ```
 TESTRAIL_HOST: TestRail instance domain name e.g ```testrail.instance.io``` (exclude the https protocol)
 TESTRAIL_USERNAME: TestRail email 
-TESTRAIL_PASSWORD: TestRail API key (Generate one in the 'My Settings page on your TestRail instance)
+TESTRAIL_PASSWORD: TestRail API key (Generate this or use an existing one from the 'My Settings' page on your TestRail instance)
 TESTRAIL_PROJECT_ID: TestRail project ID where test runs and results will be added
 TESTRAIL_SUITE_ID: The TestRail suite ID associated with the test cases
 TESTRAIL_RUN_NAME: The name of the TestRail test run. (the execution time will be appended to this name on when created on TestRail)
@@ -62,12 +62,12 @@ test("C12345 C12346 C12347 Login with valid credentials should succeed", async (
 4. When you execute your tests, you should see this output logs on your terminal:
 
 ```
-info: No Existing 'TESTRAIL_RUN_ID' provided by user... 
-info: Automatically creating a run... (If you did not provide a run ID)
-info: New TestRail run has been created: https://<testrail-host>/index.php?/runs/view/<run-id>
-info: Matched Test Case ID: 12345
-info: Updating test status for the following TestRail Run ID: <run-id>
-info: Updated test results for Test Run: https://<testrail-host>/index.php?/runs/view/<run-id>
+[playwright-testrail-reporter]: No Existing 'TESTRAIL_RUN_ID' provided by user... 
+[playwright-testrail-reporter]: Automatically creating a run... (If you did not provide a run ID)
+[playwright-testrail-reporter]: New TestRail run has been created: https://<testrail-host>/index.php?/runs/view/<run-id>
+[playwright-testrail-reporter]: Matched Test Case ID: 12345
+[playwright-testrail-reporter]: Updating test status for the following TestRail Run ID: <run-id>
+[playwright-testrail-reporter]: Updated test results for Test Run: https://<testrail-host>/index.php?/runs/view/<run-id>
 
 ```
 5. Test Run and test case results should be updated

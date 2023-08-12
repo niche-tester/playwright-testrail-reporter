@@ -14,7 +14,7 @@ npm install @playwright-testrail-reporter
 To use TestRail Reporter, you will need to set up the following environment variables:
 
 ```
-TESTRAIL_HOST: TestRail instance domain name e.g ```testrail.instance.io``` (exclude the https protocol)
+TESTRAIL_HOST: TestRail instance domain name e.g ```https://testrail.instance.io```
 TESTRAIL_USERNAME: TestRail email 
 TESTRAIL_PASSWORD: TestRail API key (Generate this or use an existing one from the 'My Settings' page on your TestRail instance)
 TESTRAIL_PROJECT_ID: TestRail project ID where test runs and results will be added

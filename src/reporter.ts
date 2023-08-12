@@ -9,7 +9,7 @@ const StatusMap = new Map<string, number>([
 	["failed", 5],
 	["passed", 1],
 	["skipped", 3],
-	["timeOut", 5],
+	["timedOut", 5],
 	["interrupted", 5],
 ])
 /**

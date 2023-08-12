@@ -8,9 +8,8 @@
     "/lib"
   ],
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "tsc --build tsconfig.json",
     "clean": "rimraf ./lib",
-    "compile": "tsc --build tsconfig.json",
     "test:playwright": "npx playwright test --config=./tests/playwright.config.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "npm run lint -- --fix"

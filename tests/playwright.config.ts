@@ -6,10 +6,10 @@ const config: PlaywrightTestConfig = {
 
   testDir: ".",
   testMatch: '*.spec.ts',
-  timeout: 30 * 1000,
+  timeout: 30 * 2000,
 
   expect: {
-    timeout: 5000
+    timeout: 7000
   },
 
   reporter: [

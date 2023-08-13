@@ -76,7 +76,7 @@ export class TestRailReporter implements Reporter {
 /**
  * Get list of matching Test IDs
  */
-function getTestCaseName(testname: string) {
+export function getTestCaseName(testname: string) {
 	const testCaseIdRegex = /\bC(\d+)\b/g
 	const testCaseMatches = [testname.match(testCaseIdRegex)]
 

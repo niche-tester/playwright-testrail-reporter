@@ -49,11 +49,11 @@ export class TestRailReporter implements Reporter {
 		if (testCaseMatches != null) {
 
 			testCaseMatches.forEach(testCaseMatch => {
-				let testId = parseInt(testCaseMatch.substring(1), 10)
+				const testId = parseInt(testCaseMatch.substring(1), 10)
 				//Update test status if test case is not skipped
 				if (result.status != "skipped") {
-					let testComment = setTestComment(result)
-					let payload = {
+					const testComment = setTestComment(result)
+					const payload = {
 						case_id: testId,
 						status_id: StatusMap.get(result.status),
 						comment: testComment
@@ -65,7 +65,7 @@ export class TestRailReporter implements Reporter {
 	}
 
 	async onEnd(result: FullResult): Promise<void> {
-		let runId = parseInt(process.env.TESTRAIL_RUN_ID as string)
+		const runId = parseInt(process.env.TESTRAIL_RUN_ID as string)
 		logger("Updating test status for the following TestRail Run ID: " + runId)
 		await updateResultCases(runId, testResults)
 	}
@@ -76,13 +76,13 @@ export class TestRailReporter implements Reporter {
 /**
  * Get list of matching Test IDs
  */
-function getTestCaseName(testname: string) {
+export function getTestCaseName(testname: string) {
 	const testCaseIdRegex = /\bC(\d+)\b/g
 	const testCaseMatches = [testname.match(testCaseIdRegex)]
 
 	if (testCaseMatches[0] != null) {
 		testCaseMatches[0].forEach((testCaseMatch) => {
-			let testCaseId = parseInt(testCaseMatch.substring(1), 10)
+			const testCaseId = parseInt(testCaseMatch.substring(1), 10)
 			logger("Matched Test Case ID: " + testCaseId)
 		})
 	}

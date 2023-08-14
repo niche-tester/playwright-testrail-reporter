@@ -1,5 +1,5 @@
 on:
-  push:
+  workflow_dispatch:
     branches: 
     - main
 
@@ -10,8 +10,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "18"
-      - run: npm build
-      - uses: JS-DevTools/npm-publish@v2
+          node-version: "16"
+      - name: Install Node
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Publish to NPM
+        uses: JS-DevTools/npm-publish@v2
         with:
           token: ${{ secrets.NPM_TOKEN }}

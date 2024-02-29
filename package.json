@@ -1,10 +1,6 @@
 {
   "name": "pw-simple-testrail-reporter",
-<<<<<<< HEAD
-  "version": "1.2.0",
-=======
-  "version": "1.0.0",
->>>>>>> 921aafc (small changes)
+  "version": "1.0.1",
   "description": "Report Playwright test results to TestRail",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

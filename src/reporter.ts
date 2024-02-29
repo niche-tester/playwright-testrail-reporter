@@ -6,6 +6,10 @@ import {
     TestResult,
 } from "@playwright/test/reporter"
 import logger from "./logger"
+import dotenv from "dotenv"
+
+// Read from default ".env" file.
+dotenv.config()
 
 /**
  * Mapping status within Playwright & TestRail

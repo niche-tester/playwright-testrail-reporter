@@ -1,5 +1,5 @@
 {
-  "name": "playwright-simple-reporter",
+  "name": "pw-simple-testrail-reporter",
   "version": "1.2.0",
   "description": "Report Playwright test results to TestRail",
   "main": "lib/index.js",

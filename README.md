@@ -69,4 +69,5 @@ test("C12345 C12346 C12347 Login with valid credentials should succeed", async (
 
 ## License
 
-This project is licensed under the [MIT License](/README.md)
+This project is inspired by [playwright-testrail-reporter
+](https://github.com/niche-tester/playwright-testrail-reporter) and it is licensed under the [MIT License](/README.md)

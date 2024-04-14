@@ -1,7 +1,7 @@
 import TestRail, { AddResultsForCases } from "@dlenroc/testrail"
 import { FullConfig, FullResult, Reporter, Suite, TestCase, TestError, TestResult } from "@playwright/test/reporter"
 import logger from "./logger"
-  
+
 /**
  * Mapping status within Playwright & TestRail
  */
@@ -124,7 +124,7 @@ async function addResultForSuite(api: TestRail, runId: number, caseId: number, s
 	await api.addResultForCase(runId, caseId, {
 		status_id: status,
 		comment: comment
-	}).then((res) => { logger("Updated status for caseId " + caseId + " for runId " + runId) }, 
+	}).then((res) => { logger("Updated status for caseId " + caseId + " for runId " + runId) },
 	(reason) => { logger("Failed to call Update Api due to " + JSON.stringify(reason)) })
 }
 /**

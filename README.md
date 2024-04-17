@@ -1,5 +1,3 @@
-[![npm version](https://badge.fury.io/js/playwright-testrail-reporter.svg)](https://badge.fury.io/js/playwright-testrail-reporter)
-
 # playwright-testrail-reporter
 
 playwright-testrail-reporter is a custom reporter for Playwright Test to seamlessly integrate with TestRail. The reporter automatically creates TestRail Runs and adds test results by matching test case IDs.
@@ -13,16 +11,21 @@ npm install @playwright-testrail-reporter
 
 To use TestRail Reporter, you will need to set up the following environment variables:
 
-```
-TESTRAIL_HOST: TestRail instance domain name e.g ```https://testrail.instance.io```
-TESTRAIL_USERNAME: TestRail email 
-TESTRAIL_PASSWORD: TestRail API key (Generate this or use an existing one from the 'My Settings' page on your TestRail instance)
-TESTRAIL_PROJECT_ID: TestRail project ID where test runs and results will be added
-TESTRAIL_SUITE_ID: The TestRail suite ID associated with the test cases
-TESTRAIL_RUN_NAME: The name of the TestRail test run. (the execution time will be appended to this name on when created on TestRail)
-````
+- `TESTRAIL_HOST`: Your TestRail instance domain name.
+    - Example: `https://mytestrail.instance.io`
+- `TESTRAIL_USERNAME`: Your TestRail email.
+    - Example: `myemail@example.com`
+- `TESTRAIL_PASSWORD`: Your TestRail API key. You can generate this or use an existing one from the 'My Settings' page on your TestRail instance.
+    - Example: `abc123def456ghi789`
+- `TESTRAIL_PROJECT_ID`: The TestRail project ID where test runs and results will be added.
+    - Example: `5` (assuming your project ID is 5)
+- `TESTRAIL_SUITE_ID`: The TestRail suite ID associated with the test cases.
+    - Example: `2` (assuming your suite ID is 2)
+- `TESTRAIL_RUN_NAME`: The name of the TestRail test run. The execution time will be appended to this name when created on TestRail.
+    - Example: `My Test Run`
 
-Additionally, you may provide the TESTRAIL_RUN_ID environment variable to use an existing TestRail test run instead of creating a new one.
+Additionally, you may provide the `TESTRAIL_RUN_ID` environment variable to use an existing TestRail test run instead of creating a new one.
+- Example: `7` (assuming your run ID is 7)
 
 ## Usage
 
@@ -41,7 +44,7 @@ const config: PlaywrightTestConfig = {
 export default config;
 ````
 
-2. In your test files, add TestRail test case IDs to the test case names using the following format: C12345. 
+2. In your test files, add TestRail test case IDs to the test case names using the following format: C12345.
 
 *Example:*
 
@@ -62,7 +65,7 @@ test("C12345 C12346 C12347 Login with valid credentials should succeed", async (
 4. When you execute your tests, you should see this output logs on your terminal:
 
 ```
-[playwright-testrail-reporter]: No Existing 'TESTRAIL_RUN_ID' provided by user... 
+[playwright-testrail-reporter]: No Existing 'TESTRAIL_RUN_ID' provided by user...
 [playwright-testrail-reporter]: Automatically creating a run... (If you did not provide a run ID)
 [playwright-testrail-reporter]: New TestRail run has been created: https://<testrail-host>/index.php?/runs/view/<run-id>
 [playwright-testrail-reporter]: Matched Test Case ID: 12345
@@ -81,3 +84,4 @@ This project is licensed under the [MIT License](/README.md)
 ## Support
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/wufazu)
+```

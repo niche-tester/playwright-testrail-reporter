@@ -18,4 +18,24 @@ describe('getTestCaseName function', () => {
     const matchedIds = getTestCaseName(testname);
     expect(matchedIds).toEqual(['C123', 'C456']);
   });
+
+  it('should return null for an empty test name', () => {
+    const testname = "";
+    const matchedIds = getTestCaseName(testname);
+    expect(matchedIds).toBeNull();
+  });
+  // ...existing tests...
+
+  it('should return null for an empty test name', () => {
+    const testname = "";
+    const matchedIds = getTestCaseName(testname);
+    expect(matchedIds).toBeNull();
+  });
+
+  it('should extract test case ID at the beginning of the test name', () => {
+    const testname = "C123 Sample Test";
+    const matchedIds = getTestCaseName(testname);
+    expect(matchedIds).toEqual(['C123']);
+  });
+
 });

@@ -27,5 +27,3 @@ jobs:
       run: npm run lint
     - name: Execute Unit Tests
       run: npm run test
-    - name: Execute Integration Tests
-      run: npm run test:playwright

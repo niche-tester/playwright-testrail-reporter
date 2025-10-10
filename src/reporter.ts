@@ -18,13 +18,28 @@ const StatusMap = new Map<string, number>([
 	["interrupted", parseInt(process.env.TESTRAIL_STATUS_INTERRUPTED || "5")],
 ])
 /**
- * Sanitize environment variable by removing surrounding quotes
+ * Sanitize environment variable by removing surrounding quotes and cleaning common issues
  */
 function sanitizeEnvVar(value: string | undefined): string {
 	if (!value) return ''
 	
-	// Remove surrounding single or double quotes
-	return value.replace(/^['"]|['"]$/g, '').trim()
+	let cleaned = value.trim()
+	
+	// Remove surrounding single or double quotes (including nested quotes)
+	cleaned = cleaned.replace(/^['"]|['"]$/g, '').trim()
+	
+	// Handle nested quotes like "'value'" -> value
+	if ((cleaned.startsWith("'") && cleaned.endsWith("'")) || 
+	    (cleaned.startsWith('"') && cleaned.endsWith('"'))) {
+		cleaned = cleaned.slice(1, -1).trim()
+	}
+	
+	// Remove extra trailing slashes from URLs
+	if (cleaned.includes('://') && cleaned.endsWith('//')) {
+		cleaned = cleaned.replace(/\/+$/, '')
+	}
+	
+	return cleaned
 }
 
 /**
@@ -53,7 +68,7 @@ function validateEnvironmentVariables(): void {
 	// Validate TESTRAIL_HOST
 	const host = sanitizeEnvVar(process.env.TESTRAIL_HOST || '')
 	if (host) {
-		// Check for common host mistakes
+		// Check for problems that can't be automatically fixed
 		if (host === 'localhost' || host.includes('localhost')) {
 			invalidVars.push('TESTRAIL_HOST (localhost not supported - use your TestRail cloud URL)')
 		} else if (host.includes('your-domain') || host.includes('<') || host.includes('>')) {
@@ -64,9 +79,8 @@ function validateEnvironmentVariables(): void {
 			invalidVars.push('TESTRAIL_HOST (invalid domain format - should be like "company.testrail.io")')
 		} else if (host.startsWith('http://')) {
 			warnings.push('TESTRAIL_HOST uses http:// - consider using https:// for security')
-		} else if (host.endsWith('//')) {
-			invalidVars.push('TESTRAIL_HOST (has extra trailing slashes)')
 		}
+		// Note: Extra trailing slashes are now automatically cleaned by sanitizeEnvVar
 	}
 	
 	// Validate USERNAME
@@ -160,7 +174,12 @@ const executionDateTime =  Date().toString().slice(4, 25)
 
 // Validate environment variables before proceeding (skip during testing)
 if (process.env.NODE_ENV !== 'test') {
-	validateEnvironmentVariables()
+	try {
+		validateEnvironmentVariables()
+	} catch (error) {
+		// Clean exit without stack trace for configuration errors
+		process.exit(1)
+	}
 }
 
 // Support both TESTRAIL_API_KEY (new) and TESTRAIL_PASSWORD (legacy) for backward compatibility

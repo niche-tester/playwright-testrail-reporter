@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 
+// Mock process.exit to prevent actual exit during tests
+const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+  throw new Error('process.exit called')
+})
+
 // Mock the validation function to test it directly
 const mockValidateEnvironmentVariables = () => {
   // Clear module cache to get fresh instance
@@ -43,10 +48,10 @@ describe('Environment Variable Validation', () => {
     jest.resetModules()
   })
 
-  it('should throw error when required environment variables are missing', () => {
+  it('should exit cleanly when required environment variables are missing', () => {
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should sanitize environment variables with extra quotes', () => {
@@ -72,7 +77,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should throw error for zero or negative numeric IDs', () => {
@@ -84,7 +89,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should accept legacy TESTRAIL_PASSWORD instead of TESTRAIL_API_KEY', () => {
@@ -121,7 +126,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect placeholder text in environment variables', () => {
@@ -133,7 +138,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect common typos in domain', () => {
@@ -145,7 +150,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect boolean values in numeric fields', () => {
@@ -157,7 +162,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect decimal numbers in ID fields', () => {
@@ -169,7 +174,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect literal null/undefined strings', () => {
@@ -181,7 +186,7 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
   it('should detect invalid domain formats', () => {
@@ -193,18 +198,32 @@ describe('Environment Variable Validation', () => {
 
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).toThrow('process.exit called')
   })
 
-  it('should detect extra trailing slashes in URL', () => {
-    process.env.TESTRAIL_HOST = "https://company.testrail.io//"  // Extra slashes
+  it('should automatically clean extra trailing slashes in URL', () => {
+    process.env.TESTRAIL_HOST = "https://company.testrail.io//"  // Extra slashes - should be cleaned automatically
     process.env.TESTRAIL_USERNAME = "user@company.com"
     process.env.TESTRAIL_API_KEY = "test-key-12345"
     process.env.TESTRAIL_PROJECT_ID = "123"
     process.env.TESTRAIL_SUITE_ID = "456"
 
+    // Should NOT throw because trailing slashes are now automatically cleaned
     expect(() => {
       mockValidateEnvironmentVariables()
-    }).toThrow('Invalid TestRail configuration')
+    }).not.toThrow()
+  })
+
+  it('should automatically clean nested quotes', () => {
+    process.env.TESTRAIL_HOST = "\"'https://company.testrail.io'\""  // Nested quotes - should be cleaned automatically
+    process.env.TESTRAIL_USERNAME = "\"'user@company.com'\""
+    process.env.TESTRAIL_API_KEY = "\"'test-key-12345'\""
+    process.env.TESTRAIL_PROJECT_ID = "\"'123'\""
+    process.env.TESTRAIL_SUITE_ID = "\"'456'\""
+
+    // Should NOT throw because nested quotes are now automatically cleaned
+    expect(() => {
+      mockValidateEnvironmentVariables()
+    }).not.toThrow()
   })
 })

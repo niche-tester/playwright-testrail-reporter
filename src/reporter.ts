@@ -18,22 +18,163 @@ const StatusMap = new Map<string, number>([
 	["interrupted", parseInt(process.env.TESTRAIL_STATUS_INTERRUPTED || "5")],
 ])
 /**
+ * Sanitize environment variable by removing surrounding quotes
+ */
+function sanitizeEnvVar(value: string | undefined): string {
+	if (!value) return ''
+	
+	// Remove surrounding single or double quotes
+	return value.replace(/^['"]|['"]$/g, '').trim()
+}
+
+/**
+ * Validate required environment variables
+ */
+function validateEnvironmentVariables(): void {
+	const requiredVars = [
+		'TESTRAIL_HOST',
+		'TESTRAIL_USERNAME', 
+		'TESTRAIL_PROJECT_ID',
+		'TESTRAIL_SUITE_ID'
+	]
+	
+	const missingVars: string[] = []
+	const invalidVars: string[] = []
+	const warnings: string[] = []
+	
+	// Check for missing required variables
+	for (const varName of requiredVars) {
+		const value = sanitizeEnvVar(process.env[varName])
+		if (!value) {
+			missingVars.push(varName)
+		}
+	}
+	
+	// Validate TESTRAIL_HOST
+	const host = sanitizeEnvVar(process.env.TESTRAIL_HOST || '')
+	if (host) {
+		// Check for common host mistakes
+		if (host === 'localhost' || host.includes('localhost')) {
+			invalidVars.push('TESTRAIL_HOST (localhost not supported - use your TestRail cloud URL)')
+		} else if (host.includes('your-domain') || host.includes('<') || host.includes('>')) {
+			invalidVars.push('TESTRAIL_HOST (contains placeholder text - replace with actual domain)')
+		} else if (host.includes('testrai.io')) {
+			invalidVars.push('TESTRAIL_HOST (typo detected - should be "testrail.io" not "testrai.io")')
+		} else if (!host.includes('.')) {
+			invalidVars.push('TESTRAIL_HOST (invalid domain format - should be like "company.testrail.io")')
+		} else if (host.startsWith('http://')) {
+			warnings.push('TESTRAIL_HOST uses http:// - consider using https:// for security')
+		} else if (host.endsWith('//')) {
+			invalidVars.push('TESTRAIL_HOST (has extra trailing slashes)')
+		}
+	}
+	
+	// Validate USERNAME
+	const username = sanitizeEnvVar(process.env.TESTRAIL_USERNAME || '')
+	if (username) {
+		if (username.includes('@example.com') || username === 'your-username') {
+			invalidVars.push('TESTRAIL_USERNAME (contains placeholder text - use your actual email)')
+		} else if (!username.includes('@')) {
+			warnings.push('TESTRAIL_USERNAME typically should be an email address')
+		}
+	}
+	
+	// Validate API KEY/PASSWORD
+	const apiKey = sanitizeEnvVar(process.env.TESTRAIL_API_KEY) || sanitizeEnvVar(process.env.TESTRAIL_PASSWORD)
+	if (apiKey) {
+		if (apiKey === 'your-api-key' || apiKey === 'your-password' || apiKey === 'example-api-key') {
+			invalidVars.push('TESTRAIL_API_KEY/PASSWORD (contains placeholder text - use your actual API key)')
+		} else if (apiKey.length < 10) {
+			warnings.push('TESTRAIL_API_KEY/PASSWORD seems unusually short - verify it\'s correct')
+		}
+	}
+	
+	// Check for invalid numeric values
+	const projectIdStr = sanitizeEnvVar(process.env.TESTRAIL_PROJECT_ID) || '0'
+	const suiteIdStr = sanitizeEnvVar(process.env.TESTRAIL_SUITE_ID) || '0'
+	
+	// Check for common numeric mistakes
+	if (projectIdStr === 'null' || projectIdStr === 'undefined') {
+		invalidVars.push('TESTRAIL_PROJECT_ID (contains literal "null" or "undefined" - use actual number)')
+	} else if (projectIdStr.includes('.')) {
+		invalidVars.push('TESTRAIL_PROJECT_ID (decimal numbers not allowed - use whole numbers)')
+	} else if (projectIdStr === 'true' || projectIdStr === 'false') {
+		invalidVars.push('TESTRAIL_PROJECT_ID (boolean not allowed - use actual project ID number)')
+	} else {
+		const projectId = parseInt(projectIdStr)
+		if (isNaN(projectId) || projectId <= 0) {
+			invalidVars.push('TESTRAIL_PROJECT_ID (must be a positive number)')
+		}
+	}
+	
+	if (suiteIdStr === 'null' || suiteIdStr === 'undefined') {
+		invalidVars.push('TESTRAIL_SUITE_ID (contains literal "null" or "undefined" - use actual number)')
+	} else if (suiteIdStr.includes('.')) {
+		invalidVars.push('TESTRAIL_SUITE_ID (decimal numbers not allowed - use whole numbers)')
+	} else if (suiteIdStr === 'true' || suiteIdStr === 'false') {
+		invalidVars.push('TESTRAIL_SUITE_ID (boolean not allowed - use actual suite ID number)')
+	} else {
+		const suiteId = parseInt(suiteIdStr)
+		if (isNaN(suiteId) || suiteId <= 0) {
+			invalidVars.push('TESTRAIL_SUITE_ID (must be a positive number)')
+		}
+	}
+	
+	// Check for missing API credentials
+	if (!apiKey) {
+		missingVars.push('TESTRAIL_API_KEY or TESTRAIL_PASSWORD')
+	}
+	
+	// Report errors and warnings
+	if (missingVars.length > 0 || invalidVars.length > 0) {
+		logger('❌ TestRail configuration errors detected:')
+		
+		if (missingVars.length > 0) {
+			logger(`   Missing required variables: ${missingVars.join(', ')}`)
+		}
+		
+		if (invalidVars.length > 0) {
+			logger(`   Invalid values: ${invalidVars.join(', ')}`)
+		}
+		
+		logger('ℹ️  Please check your environment variables. Common issues:')
+		logger('   - Remove extra quotes: Use TESTRAIL_HOST=https://... not TESTRAIL_HOST="\'https://...\'"')
+		logger('   - Replace placeholder text with actual values')
+		logger('   - Ensure numeric IDs are valid positive integers')
+		logger('   - Use your actual TestRail domain (e.g., company.testrail.io)')
+		logger('   - Set all required variables listed above')
+		
+		throw new Error('Invalid TestRail configuration')
+	}
+	
+	// Show warnings (non-fatal)
+	if (warnings.length > 0) {
+		warnings.forEach(warning => logger(`⚠️  ${warning}`))
+	}
+}
+
+/**
  * Initialise TestRail API credential auth
  */
 const executionDateTime =  Date().toString().slice(4, 25)
 
+// Validate environment variables before proceeding (skip during testing)
+if (process.env.NODE_ENV !== 'test') {
+	validateEnvironmentVariables()
+}
+
 // Support both TESTRAIL_API_KEY (new) and TESTRAIL_PASSWORD (legacy) for backward compatibility
-const apiKey = process.env.TESTRAIL_API_KEY || process.env.TESTRAIL_PASSWORD || ''
+const apiKey = sanitizeEnvVar(process.env.TESTRAIL_API_KEY) || sanitizeEnvVar(process.env.TESTRAIL_PASSWORD) || ''
 
 const api = new TestRail({
-	domain: (process.env.TESTRAIL_HOST || '').replace(/^https?:\/\//, ''),
+	domain: sanitizeEnvVar(process.env.TESTRAIL_HOST || '').replace(/^https?:\/\//, ''),
 	password: apiKey,
-	username: process.env.TESTRAIL_USERNAME || ''
+	username: sanitizeEnvVar(process.env.TESTRAIL_USERNAME || '')
 })
 
-const runName = (process.env.TESTRAIL_RUN_NAME || 'Test Run') + " - Created On " + executionDateTime
-const projectId = parseInt(process.env.TESTRAIL_PROJECT_ID || '0')
-const suiteId = parseInt(process.env.TESTRAIL_SUITE_ID || '0')
+const runName = (sanitizeEnvVar(process.env.TESTRAIL_RUN_NAME) || 'Test Run') + " - Created On " + executionDateTime
+const projectId = parseInt(sanitizeEnvVar(process.env.TESTRAIL_PROJECT_ID) || '0')
+const suiteId = parseInt(sanitizeEnvVar(process.env.TESTRAIL_SUITE_ID) || '0')
 
 const testResults: Array<{case_id: number, status_id: number | undefined, comment: string}> = []
 
@@ -127,10 +268,25 @@ async function addTestRailRun(projectId: number) {
 		logger(`📋 Found ${caseIds.length} test cases to add to the run`)
 		
 		const runId = await api.addRun(runName, "", projectId, suiteId, caseIds)
-		logger(`🎉 New TestRail run created: ${process.env.TESTRAIL_HOST}/index.php?/runs/view/${runId}`)
+		logger(`🎉 New TestRail run created: ${sanitizeEnvVar(process.env.TESTRAIL_HOST)}/index.php?/runs/view/${runId}`)
 		process.env.TESTRAIL_RUN_ID = runId.toString()
 	} catch (reason: any) {
-		logger(`❌ Failed to create TestRail run: ${reason}`)
+		logger(`❌ Failed to create TestRail run: ${reason.message || reason}`)
+		
+		// Provide helpful error messages for common issues
+		if (reason.message && reason.message.includes('Authentication failed')) {
+			logger('💡 Check your TESTRAIL_USERNAME and TESTRAIL_API_KEY/TESTRAIL_PASSWORD')
+		} else if (reason.message && reason.message.includes('not found')) {
+			logger('💡 Check your TESTRAIL_PROJECT_ID and TESTRAIL_SUITE_ID are correct')
+		} else if (reason.message && reason.message.includes('permission')) {
+			logger('💡 Your TestRail user may not have permission to create test runs')
+		} else if (reason.code === 'ENOTFOUND' || reason.code === 'ECONNREFUSED') {
+			logger('💡 Check your TESTRAIL_HOST and network connectivity')
+		}
+		
+		if (reason.response && reason.response.data) {
+			logger(`❌ TestRail API Response: ${stringify(reason.response.data)}`)
+		}
 	}
 }
 
@@ -171,14 +327,34 @@ function setTestComment(result: TestResult) {
  */
 async function updateResultCases(runId: number, payload: any) {
 	try {
+		// Validate runId before making API call
+		if (!runId || isNaN(runId)) {
+			throw new Error(`Invalid run ID: ${runId}. This usually means TestRail run creation failed earlier.`)
+		}
+		
 		await api.addResultsForCases(runId, payload)
-		logger(`✅ Successfully updated test results: ${process.env.TESTRAIL_HOST}/index.php?/runs/view/${runId}`)
+		logger(`✅ Successfully updated test results: ${sanitizeEnvVar(process.env.TESTRAIL_HOST)}/index.php?/runs/view/${runId}`)
 	} catch (reason: any) {
 		logger(`❌ Failed to update test results. Error: ${reason.message || reason}`)
+		
+		// Provide helpful error messages for common issues
+		if (reason.message && reason.message.includes('Invalid run ID')) {
+			logger('💡 The TestRail run was not created successfully. Check the error messages above.')
+		} else if (reason.message && reason.message.includes('Authentication failed')) {
+			logger('💡 Check your TESTRAIL_USERNAME and TESTRAIL_API_KEY/TESTRAIL_PASSWORD')
+		} else if (reason.message && reason.message.includes('not found')) {
+			logger('💡 The TestRail run may have been deleted or you may not have access to it')
+		}
+		
+		// Show TestRail API response if available (usually contains specific error details)
 		if (reason.response && reason.response.data) {
 			logger(`❌ TestRail API Response: ${stringify(reason.response.data)}`)
 		}
-		// Log the payload being sent for debugging
-		logger(`❌ Payload sent: ${stringify(payload, null, 2)}`)
+		
+		// Only show payload details in debug mode
+		if (process.env.DEBUG === 'true' && Array.isArray(payload)) {
+			logger(`🔍 Debug: Attempted to update ${payload.length} test result(s)`)
+			logger(`🔍 Debug: Payload details: ${stringify(payload, null, 2)}`)
+		}
 	}
 }

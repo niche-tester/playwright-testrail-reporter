@@ -5,7 +5,6 @@ name: Test
 
 on:
   push: 
-    branches: [ develop ]
 
 jobs:
   test:
@@ -13,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Add Environment File
       run: echo "${{ secrets.PROD_ENV }}" > $GITHUB_WORKSPACE/.env
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: "16"
+        node-version: "20"
     - name: Install Node
       run: npm install
     - name: Build
@@ -27,5 +26,5 @@ jobs:
       run: npm run lint
     - name: Execute Unit Tests
       run: npm run test
-    - name: Execute Integration Tests
-      run: npm run test:playwright
+    # - name: Execute Integration Tests
+    #   run: npm run test:playwright

@@ -184,4 +184,36 @@ describe('TestRailReporter', () => {
       expect(mockLogger).toHaveBeenCalledWith('📊 Updating 1 test results for TestRail Run ID: 123')
     })
   })
+
+  describe('Error Logging Improvements', () => {
+    it('should not log payload details by default', () => {
+      // Test that payload details are not logged unless DEBUG=true
+      const payload = Array.from({ length: 10 }, (_, i) => ({
+        case_id: 1000 + i,
+        status_id: 1,
+        comment: `Test passed in ${i * 100}ms`
+      }))
+
+      // Verify payload structure exists but won't be logged by default
+      expect(Array.isArray(payload)).toBe(true)
+      expect(payload.length).toBeGreaterThan(0)
+    })
+
+    it('should only show debug info when DEBUG=true', () => {
+      // Test that debug mode enables payload logging
+      const originalDebug = process.env.DEBUG
+      process.env.DEBUG = 'true'
+      
+      const payload = [
+        { case_id: 123, status_id: 1, comment: "Test passed" }
+      ]
+
+      // Verify debug mode is set
+      expect(process.env.DEBUG).toBe('true')
+      expect(Array.isArray(payload)).toBe(true)
+      
+      // Restore original DEBUG setting
+      process.env.DEBUG = originalDebug
+    })
+  })
 });

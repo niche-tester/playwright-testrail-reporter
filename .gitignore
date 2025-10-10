@@ -108,4 +108,8 @@ node_modules
 logs
 .DS_Store
 .idea
+test-results
+.claude
+# Local documentation
+RELEASE_PROCESS.md
 

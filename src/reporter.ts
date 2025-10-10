@@ -1,6 +1,8 @@
-import TestRail, { AddResultsForCases } from "@dlenroc/testrail"
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const TestRail = require("testrail-api-client").default
 import { FullConfig, FullResult, Reporter, Suite, TestCase, TestError, TestResult } from "@playwright/test/reporter"
 import logger from "./logger"
+import stringify from "json-stringify-safe"
 
 /**
  * Mapping status within Playwright & TestRail
@@ -9,7 +11,7 @@ const StatusMap = new Map<string, number>([
 	["failed", 5],
 	["passed", 1],
 	["skipped", 3],
-	["timedout", 5],
+	["timedOut", 5],
 	["interrupted", 5],
 ])
 /**
@@ -18,16 +20,16 @@ const StatusMap = new Map<string, number>([
 const executionDateTime =  Date().toString().slice(4, 25)
 
 const api = new TestRail({
-	host: process.env.TESTRAIL_HOST as string,
-	password: process.env.TESTRAIL_PASSWORD as string,
-	username: process.env.TESTRAIL_USERNAME as string
+	domain: (process.env.TESTRAIL_HOST || '').replace(/^https?:\/\//, ''),
+	password: process.env.TESTRAIL_PASSWORD || '',
+	username: process.env.TESTRAIL_USERNAME || ''
 })
 
-const runName = process.env.TESTRAIL_RUN_NAME + " - Created On " + executionDateTime
-const projectId = parseInt(process.env.TESTRAIL_PROJECT_ID as string)
-const suiteId = parseInt(process.env.TESTRAIL_SUITE_ID as string)
+const runName = (process.env.TESTRAIL_RUN_NAME || 'Test Run') + " - Created On " + executionDateTime
+const projectId = parseInt(process.env.TESTRAIL_PROJECT_ID || '0')
+const suiteId = parseInt(process.env.TESTRAIL_SUITE_ID || '0')
 
-const testResults: AddResultsForCases[] = []
+const testResults: Array<{case_id: number, status_id: number | undefined, comment: string}> = []
 
 export class TestRailReporter implements Reporter {
 	async onBegin?(config: FullConfig, suite: Suite) {
@@ -53,9 +55,15 @@ export class TestRailReporter implements Reporter {
 				//Update test status if test case is not skipped
 				if (result.status != "skipped") {
 					const testComment = setTestComment(result)
+					const statusId = StatusMap.get(result.status)
+					
+					if (statusId === undefined) {
+						logger(`Warning: Unknown test status '${result.status}' for case ${testId}. Using status 5 (failed) as fallback.`)
+					}
+					
 					const payload = {
 						case_id: testId,
-						status_id: StatusMap.get(result.status),
+						status_id: statusId || 5, // Fallback to failed status if unknown
 						comment: testComment
 					}
 					testResults.push(payload)
@@ -98,35 +106,21 @@ export function getTestCaseName(testname: string) {
  * @returns
  */
 async function addTestRailRun(projectId: number) {
-	return await api.addRun(projectId, {
-		include_all: true,
-		name: runName,
-		suite_id: suiteId,
-	}).then(
-		(res) => {
-			logger("New TestRail run has been created: " + process.env.TESTRAIL_HOST +
-				"/index.php?/runs/view/"+ res.id)
-			process.env.TESTRAIL_RUN_ID = (res.id).toString()
-		},
-		(reason) => {
-			logger("Failed to create new TestRail run: " + reason)
-		})
+	try {
+		// Get all test cases from the suite to include them in the run
+		const cases = await api.getCases(projectId, suiteId)
+		const caseIds = cases.map((testCase: any) => testCase.id)
+		logger(`Including ${caseIds.length} test cases in the run`)
+		
+		const runId = await api.addRun(runName, "", projectId, suiteId, caseIds)
+		logger("New TestRail run has been created: " + process.env.TESTRAIL_HOST +
+			"/index.php?/runs/view/"+ runId)
+		process.env.TESTRAIL_RUN_ID = runId.toString()
+	} catch (reason: any) {
+		logger("Failed to create new TestRail run: " + reason)
+	}
 }
 
-/**
- * Add Test Result for TestSuite by Test Case ID/s
- * @param api
- * @param runId
- * @param caseId
- * @param status
- */
-async function addResultForSuite(api: TestRail, runId: number, caseId: number, status: number, comment: string) {
-	await api.addResultForCase(runId, caseId, {
-		status_id: status,
-		comment: comment
-	}).then((res) => { logger("Updated status for caseId " + caseId + " for runId " + runId) },
-	(reason) => { logger("Failed to call Update Api due to " + JSON.stringify(reason)) })
-}
 /**
  * Set Test comment for TestCase Failed | Passed
  * @param result
@@ -134,7 +128,15 @@ async function addResultForSuite(api: TestRail, runId: number, caseId: number, s
  */
 function setTestComment(result: TestResult) {
 	if (result.status == "failed" || result.status == "timedOut" || result.status == "interrupted") {
-		return "Test Status is " + result.status + " " + JSON.stringify(result.error)
+		const errorString = stringify(result.error)
+		// Remove ANSI escape sequences and truncate very long error messages
+		// eslint-disable-next-line no-control-regex
+		const cleanedError = errorString.replace(/\u001b\[[0-9;]*m/g, '')
+		const maxLength = 1000
+		const truncatedError = cleanedError.length > maxLength 
+			? cleanedError.substring(0, maxLength) + "... [truncated]"
+			: cleanedError
+		return "Test Status is " + result.status + " " + truncatedError
 	}
 	else {
 		return "Test Passed within " + result.duration + " ms"
@@ -148,14 +150,12 @@ function setTestComment(result: TestResult) {
  * @param payload
  */
 async function updateResultCases(runId: number, payload: any) {
-	await api.addResultsForCases(runId, {
-		results: payload,
-	}).then(
-		(result) => {
+	await api.addResultsForCases(runId, payload).then(
+		(_result: any) => {
 			logger("Updated test results for Test Run: " + process.env.TESTRAIL_HOST +
 				"/index.php?/runs/view/" + runId)
 		},
-		(reason) => {
-			logger("Failed to update test results: " + JSON.stringify(reason))
+		(reason: any) => {
+			logger("Failed to update test results: " + stringify(reason))
 		})
 }

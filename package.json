@@ -1,6 +1,6 @@
 {
   "name": "playwright-testrail-reporter",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Report Playwright test results to TestRail",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

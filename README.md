@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/playwright-testrail-reporter.svg)](https://badge.fury.io/js/playwright-testrail-reporter)
+[![npm version](https://img.shields.io/npm/v/playwright-testrail-reporter.svg)](https://www.npmjs.com/package/playwright-testrail-reporter)
 
 # playwright-testrail-reporter
 

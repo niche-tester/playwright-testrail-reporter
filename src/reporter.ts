@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const TestRail = require("testrail-api-client").default
+import { TestRailClient } from "./testrail-client"
 import { FullConfig, FullResult, Reporter, Suite, TestCase, TestError, TestResult } from "@playwright/test/reporter"
 import logger from "./logger"
 import stringify from "json-stringify-safe"
@@ -185,7 +184,7 @@ if (process.env.NODE_ENV !== 'test') {
 // Support both TESTRAIL_API_KEY (new) and TESTRAIL_PASSWORD (legacy) for backward compatibility
 const apiKey = sanitizeEnvVar(process.env.TESTRAIL_API_KEY) || sanitizeEnvVar(process.env.TESTRAIL_PASSWORD) || ''
 
-const api = new TestRail({
+const api = new TestRailClient({
 	domain: sanitizeEnvVar(process.env.TESTRAIL_HOST || '').replace(/^https?:\/\//, ''),
 	password: apiKey,
 	username: sanitizeEnvVar(process.env.TESTRAIL_USERNAME || '')

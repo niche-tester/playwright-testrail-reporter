@@ -6,9 +6,9 @@ jest.mock('../src/logger', () => mockLogger)
 
 import { getTestCaseName, TestRailReporter } from '../src/reporter'
 
-// Mock the TestRail API
-jest.mock('testrail-api-client', () => ({
-  default: jest.fn(() => ({
+// Mock the TestRail API client
+jest.mock('../src/testrail-client', () => ({
+  TestRailClient: jest.fn(() => ({
     getCases: jest.fn(),
     addRun: jest.fn(),
     addResultsForCases: jest.fn()
